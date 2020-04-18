@@ -141,7 +141,7 @@
     (and
      (eval-sequence expression text position end))
     (or
-     (eval-ordered-choise expression text position end))
+     (eval-ordered-choice expression text position end))
     (not
      (eval-negation expression text position end))
     (*
@@ -454,7 +454,7 @@
        (successful-parse-production result))
       result))
 
-(defun eval-ordered-choise (expression text position end)
+(defun eval-ordered-choice (expression text position end)
   (with-expression (expression (or &rest subexprs))
     (let ((errors '()))
       (dolist (expr subexprs
