@@ -44,6 +44,9 @@
   :licence          "MIT"
   :depends-on       ("alexandria"
                      "trivial-with-current-source-form")
+  :around-compile   (lambda (thunk)
+                      (declaim (optimize (speed 3) (debug 1) (space 0) (safety 1)))
+                      (funcall thunk))
   :components       ((:module     "early"
                       :pathname   "src"
                       :serial     t
