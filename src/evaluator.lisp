@@ -733,6 +733,7 @@
 (declaim (ftype (function (* * string input-position input-length)
                           (values result &optional))
                 exec-character-ranges))
+(declaim (inline exec-character-ranges))
 (defun exec-character-ranges (expression ranges text position end)
   (flet ((oops ()
            (make-failed-parse expression position nil)))
