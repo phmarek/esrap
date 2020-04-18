@@ -737,7 +737,7 @@
   "Test parsing character and string constants in case-insensitive
    mode."
   ;; The TIMES-{2,4} macros and (and #\c) variants prevent the
-  ;; ordered-choise and greedy-repetition optimizations from being
+  ;; ordered-choice and greedy-repetition optimizations from being
   ;; used.
   ;;
   ;; To further complicate things, TIMES-{2,4} cannot be lexical

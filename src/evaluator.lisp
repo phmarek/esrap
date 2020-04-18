@@ -175,7 +175,7 @@
     (nonterminal      (compile-nonterminal expression))
     (string           (compile-string expression))
     (and              (compile-sequence expression))
-    (or               (compile-ordered-choise expression))
+    (or               (compile-ordered-choice expression))
     (not              (compile-negation expression))
     (*                (compile-greedy-repetition expression))
     (+                (compile-greedy-positive-repetition expression))
@@ -443,10 +443,10 @@
                   (setf position (result-position result)))
               (push result results))))))))
 
-;;; Ordered choises
+;;; Ordered choices
 
-(declaim (inline make-ordered-choise-result))
-(defun make-ordered-choise-result (expression result errors)
+(declaim (inline make-ordered-choice-result))
+(defun make-ordered-choice-result (expression result errors)
   (if errors
       (make-successful-parse
        expression (result-position result)
@@ -466,10 +466,10 @@
         (let ((result (eval-expression expr text position end)))
           (if (error-result-p result)
               (push result errors)
-              (return (make-ordered-choise-result
+              (return (make-ordered-choice-result
                        expression result errors))))))))
 
-(defun check-ordered-choise-prefix (string previous-strings)
+(defun check-ordered-choice-prefix (string previous-strings)
   ;; Check for "FOO" followed by "FOOBAR" -- the latter would never
   ;; match, but it's an easy mistake to make.
   (not (some (lambda (previous)
@@ -480,13 +480,13 @@
                                 previous string 'or)))))
              previous-strings)))
 
-(defun analyze-ordered-choise (sub-expressions)
+(defun analyze-ordered-choice (sub-expressions)
   (let ((type :characters)
         (canonized '()))
     (dolist (sub sub-expressions)
       (when (and (typep sub '(or character string)))
         (let ((string (string sub)))
-          (when (check-ordered-choise-prefix string canonized)
+          (when (check-ordered-choice-prefix string canonized)
             (push string canonized))))
       (case type
         (:general)
@@ -498,31 +498,31 @@
            (setf type (if (typep sub 'string) :strings :general))))))
     (values type (nreverse canonized))))
 
-(defun compile-ordered-choise (expression)
+(defun compile-ordered-choice (expression)
   (with-expression (expression (or &rest subexprs))
-    (multiple-value-bind (type canonized) (analyze-ordered-choise subexprs)
+    (multiple-value-bind (type canonized) (analyze-ordered-choice subexprs)
       ;; FIXME: Optimize case-insensitive terminals as well.
       (ecase type
         (:characters
          ;; If every subexpression is a length 1 string, we can represent the whole
-         ;; choise with a single string.
-         (let ((choises (apply #'concatenate 'string canonized))
+         ;; choice with a single string.
+         (let ((choices (apply #'concatenate 'string canonized))
                (productions (map 'vector #'list canonized)))
-           (declare (type string choises))
-           (expression-lambda #:character-choise/characters (text position end)
+           (declare (type string choices))
+           (expression-lambda #:character-choice/characters (text position end)
              (if-let ((index (and (< position end)
-                                  (position (char text position) choises))))
+                                  (position (char text position) choices))))
                (%make-successful-parse
                 expression (+ 1 position) nil (aref productions index))
                (make-failed-parse expression position nil)))))
         (:strings
-         ;; If every subexpression is a string, we can represent the whole choise
+         ;; If every subexpression is a string, we can represent the whole choice
          ;; with a list of strings.
-         (let ((choises (mapcar #'list canonized)))
-           (expression-lambda #:character-choise/strings (text position end)
-             (dolist (choise choises
+         (let ((choices (mapcar #'list canonized)))
+           (expression-lambda #:character-choice/strings (text position end)
+             (dolist (choice choices
                       (make-failed-parse expression position nil))
-               (let* ((string (car choise))
+               (let* ((string (car choice))
                       (len (length string)))
                  (declare (type string string))
                  (when (match-terminal/case-sensitive-p
@@ -530,11 +530,11 @@
                    (return
                      (%make-successful-parse
                       expression (the input-position (+ len position))
-                      nil choise))))))))
+                      nil choice))))))))
         (:general
          ;; In the general case, compile subexpressions and call.
          (let ((functions (mapcar #'compile-expression subexprs)))
-           (expression-lambda #:ordered-choise/general (text position end)
+           (expression-lambda #:ordered-choice/general (text position end)
              (let ((errors '()))
                (dolist (fun functions
                         (make-failed-parse/no-position
@@ -543,7 +543,7 @@
                  (let ((result (funcall fun text position end)))
                    (if (error-result-p result)
                        (push result errors)
-                       (return (make-ordered-choise-result
+                       (return (make-ordered-choice-result
                                 expression result errors)))))))))))))
 
 ;;; Negations
