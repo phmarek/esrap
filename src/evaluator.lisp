@@ -455,6 +455,10 @@
       result))
 
 (defun eval-ordered-choice (expression text position end)
+  (declare (type string text)
+           (type input-position position)
+           (type input-length end)
+           (optimize (speed 3) (debug 1) (space 0) (safety 1)))
   (with-expression (expression (or &rest subexprs))
     (let ((errors '()))
       (dolist (expr subexprs
