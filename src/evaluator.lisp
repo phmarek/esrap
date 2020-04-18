@@ -196,7 +196,8 @@
       `(named-lambda ,name ,args
          (declare (type string ,text-var)
                   (type input-position ,position-var)
-                  (type input-length ,end-var))
+                  (type input-length ,end-var)
+                  (optimize (speed 3) (debug 1) (space 0) (safety 1)))
          ,@body))))
 
 ;;; Characters and strings
