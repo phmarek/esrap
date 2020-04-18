@@ -253,8 +253,8 @@ Following OPTIONS can be specified:
           (transform transform-identity-p transform-constant-p transform-text-p)
         (expand-transforms transforms)
       (let ((properties (make-rule-properties
-                         :uses-cache use-cache
-                         :uses-cache-unless-trivial (eq use-cache :unless-trivial)
+                         :uses-cache nil ; use-cache
+                         :uses-cache-unless-trivial nil ;(eq use-cache :unless-trivial)
                          :transform-identity transform-identity-p
                          :transform-constant transform-constant-p
                          :transform-text transform-text-p)))
